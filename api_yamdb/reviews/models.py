@@ -42,7 +42,7 @@ class Title(models.Model):
     year = models.PositiveIntegerField(
         validators=[MaxValueValidator(dt.datetime.now().year)]
     )
-    discription = models.TextField(blank=True)
+    description = models.TextField(blank=True)
     category = models.ForeignKey(
         Category,
         on_delete=models.SET_NULL,
@@ -57,7 +57,8 @@ class Title(models.Model):
 class TitleGenre(models.Model):
     title = models.ForeignKey(
         Title,
-        on_delete=models.CASCADE
+        on_delete=models.CASCADE,
+        related_name='genres'
     )
     genre = models.ForeignKey(
         Genre,
@@ -93,6 +94,9 @@ class Review(models.Model):
     class Meta:
         ordering = ['-pub_date']
 
+    def __str__(self):
+        return self.text
+
 
 class Comment(models.Model):
     review = models.ForeignKey(
@@ -111,3 +115,6 @@ class Comment(models.Model):
 
     class Meta:
         ordering = ['-pub_date']
+
+    def __str__(self):
+        return self.text

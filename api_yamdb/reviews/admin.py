@@ -26,7 +26,7 @@ admin.site.register(Genre, GenreAdmin)
 
 
 class TitleAdmin(admin.ModelAdmin):
-    list_display = ('pk', 'name', 'year', 'discription', 'category')
+    list_display = ('pk', 'name', 'year', 'description', 'category')
 
 
 admin.site.register(Title, TitleAdmin)
