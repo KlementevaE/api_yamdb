@@ -42,7 +42,7 @@ class Title(models.Model):
     year = models.PositiveIntegerField(
         validators=[MaxValueValidator(dt.datetime.now().year)]
     )
-    discription = models.TextField(blank=True)
+    description = models.TextField(blank=True)
     category = models.ForeignKey(
         Category,
         on_delete=models.SET_NULL,
