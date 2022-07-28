@@ -12,6 +12,7 @@ ROLE_CHOICES = (
 
 
 class User(AbstractUser):
+    email = models.EmailField('email address', blank=False, unique=True)
     bio = models.TextField(
         'Биография',
         blank=True,
@@ -19,6 +20,14 @@ class User(AbstractUser):
     role = models.CharField(max_length=9,
                             choices=ROLE_CHOICES,
                             default='user')
+    confirmation_code = models.CharField(
+        'Confirmation code',
+        max_length=4,
+        blank=True,
+    )
+
+    def __str__(self):
+        return self.username
 
 
 class Category(models.Model):
@@ -93,6 +102,9 @@ class Review(models.Model):
     class Meta:
         ordering = ['-pub_date']
 
+    def str(self):
+        return self.text
+
 
 class Comment(models.Model):
     review = models.ForeignKey(
@@ -111,3 +123,6 @@ class Comment(models.Model):
 
     class Meta:
         ordering = ['-pub_date']
+
+    def str(self):
+        return self.text

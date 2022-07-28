@@ -2,16 +2,27 @@ from django.core.management.base import BaseCommand
 
 import csv
 
-from reviews.models import User, Category, Genre, Title, TitleGenre, Review, Comment
+from api_yamdb.settings import BASE_DIR
+from reviews.models import (
+    User, Category,
+    Genre, Title,
+    TitleGenre, Review, Comment
+)
 
-import os
+STATIC_DATA = BASE_DIR + r'\static\data'
 
-print("!!!!!", os.getcwd())
+CATEGORY_FILE = STATIC_DATA + r'\category.csv'
+GENRE_FILE = STATIC_DATA + r'\genre.csv'
+USERS_FILE = STATIC_DATA + r'\users.csv'
+TITLES_FILE = STATIC_DATA + r'\titles.csv'
+GENRE_TITLE_FILE = STATIC_DATA + r'\genre_title.csv'
+REVIEW_FILE = STATIC_DATA + r'\review.csv'
+COMMENT_FILE = STATIC_DATA + r'\comments.csv'
 
 
 class Command(BaseCommand):
     def handle(self, *args, **kwargs):
-        with open('/home/evgenya/Dev/api_yamdb/api_yamdb/static/data/category.csv') as f:
+        with open(CATEGORY_FILE, 'r', encoding="utf-8") as f:
             reader = csv.reader(f)
             next(reader, None)
             for row in reader:
@@ -20,7 +31,7 @@ class Command(BaseCommand):
                     name=row[1],
                     slug=row[2],
                 )
-        with open('/home/evgenya/Dev/api_yamdb/api_yamdb/static/data/genre.csv') as f:
+        with open(GENRE_FILE, 'r', encoding="utf-8") as f:
             reader = csv.reader(f)
             next(reader, None)
             for row in reader:
@@ -29,7 +40,7 @@ class Command(BaseCommand):
                     name=row[1],
                     slug=row[2],
                 )
-        with open('/home/evgenya/Dev/api_yamdb/api_yamdb/static/data/users.csv') as f:
+        with open(USERS_FILE, 'r', encoding="utf-8") as f:
             reader = csv.reader(f)
             next(reader, None)
             for row in reader:
@@ -42,7 +53,7 @@ class Command(BaseCommand):
                     first_name=row[5],
                     last_name=row[6],
                 )
-        with open('/home/evgenya/Dev/api_yamdb/api_yamdb/static/data/titles.csv') as f:
+        with open(TITLES_FILE, 'r', encoding="utf-8") as f:
             reader = csv.reader(f)
             next(reader, None)
             for row in reader:
@@ -52,7 +63,7 @@ class Command(BaseCommand):
                     year=row[2],
                     category_id=row[3],
                 )
-        with open('/home/evgenya/Dev/api_yamdb/api_yamdb/static/data/genre_title.csv') as f:
+        with open(GENRE_TITLE_FILE, 'r', encoding="utf-8") as f:
             reader = csv.reader(f)
             next(reader, None)
             for row in reader:
@@ -61,7 +72,7 @@ class Command(BaseCommand):
                     title_id=row[1],
                     genre_id=row[2],
                 )
-        with open('/home/evgenya/Dev/api_yamdb/api_yamdb/static/data/review.csv') as f:
+        with open(REVIEW_FILE, 'r', encoding="utf-8") as f:
             reader = csv.reader(f)
             next(reader, None)
             for row in reader:
@@ -73,4 +84,15 @@ class Command(BaseCommand):
                     score=row[4],
                     pub_date=row[5],
                 )
-      
+
+        with open(COMMENT_FILE, 'r', encoding="utf-8") as f:
+            reader = csv.reader(f)
+            next(reader, None)
+            for row in reader:
+                _, created = Comment.objects.get_or_create(
+                    id=row[0],
+                    review_id=row[1],
+                    text=row[2],
+                    author_id=row[3],
+                    pub_date=row[4],
+                )
