@@ -36,6 +36,8 @@ def read_from_csv(model, datafile):
     with open(datafile, 'r', encoding="utf-8") as f:
         reader = csv.DictReader(f)
         for row in reader:
+            # Две строки с re.sub нужны в связи с тем,
+            # что в csv-файлах не везде корректно названы стобцы
             row = {re.sub(r'(category)$',
                           'category_id', k): v for (k, v) in row.items()}
             row = {re.sub(r'(author)$',
