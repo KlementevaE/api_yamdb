@@ -1,80 +1,89 @@
-from random import choice
-from django.core.mail import send_mail
-from rest_framework import response, status
-from rest_framework import mixins, viewsets
-from rest_framework import permissions
+from django.shortcuts import get_object_or_404
+from rest_framework import (response, status,
+                            viewsets,
+                            permissions,
+                            filters)
 from rest_framework.generics import CreateAPIView
-from rest_framework_simplejwt.tokens import RefreshToken
-from rest_framework.pagination import LimitOffsetPagination
 from rest_framework.decorators import action
-from rest_framework.response import Response
+from rest_framework_simplejwt.tokens import AccessToken
 
-from .serializers import (
-    UserSerializer,
-    AuthSignupSerializer,
-    AuthTokenSerializer
-)
-from .permissions import AdminPermission, SelfPermission
+from .serializers import (UserSerializer, UserMeSerializer,
+                          AuthSignupSerializer, AuthTokenSerializer)
+from .permissions import AdminPermission  # , SelfPermission
+from .pagination import UserPagination
 from reviews.models import User
 
 
-class CreateViewSet(mixins.CreateModelMixin, viewsets.GenericViewSet):
-    pass
+class UserViewSet(viewsets.ModelViewSet):
+    """Viewset для эндпоинтов users и users/me."""
+
+    lookup_field = 'username'
+    queryset = User.objects.all()
+    serializer_class = UserSerializer
+    pagination_class = UserPagination
+    permission_classes = (AdminPermission,)
+    filter_backends = (filters.OrderingFilter,)
+    ordering = ('username',)
+
+    @action(methods=['get', 'patch'], detail=False,
+            url_path='me', permission_classes=[permissions.IsAuthenticated, ],
+            )
+    def me(self, request):
+        user = User.objects.get(username=self.request.user)
+        serializer = UserMeSerializer(user, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return response.Response(serializer.data)
+        message = {
+            "Message": "Ошибочно заданы параметры",
+        }
+        return response.Response(
+            data=message,
+            status=status.HTTP_400_BAD_REQUEST
+        )
 
 
 class AuthSignupView(CreateAPIView):
+    """Generic для самостоятельной регистрации.
+    И получения кода подтверждения"""
 
     permission_classes = (permissions.AllowAny,)
     serializer_class = AuthSignupSerializer
 
-    def generate_confirmation_code(self):
-        pool = "1234567890"
-        random_str = []
-        for _ in range(4):
-            random_str.append(choice(pool))
-        return "".join(random_str)
-
-    def perform_create(self, serializer):
-        to_email = []
-        to_email.append(serializer.validated_data["email"])
-        code = self.generate_confirmation_code()
-        send_mail(
-            subject='YaMDB confirmation code ',
-            message=f' Your confirmation code is: {code}.',
-            from_email='yamdb@yamdb.fake',
-            recipient_list=to_email,
-            fail_silently=False
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        self.perform_create(serializer)
+        headers = self.get_success_headers(serializer.data)
+        return response.Response(
+            data=serializer.data,
+            status=status.HTTP_200_OK,
+            headers=headers
         )
-        serializer.save(confirmation_code=code)
 
 
 class AuthTokenView(CreateAPIView):
+    """Generic для получения access-токена."""
+
     permission_classes = (permissions.AllowAny,)
     serializer_class = AuthTokenSerializer
 
-    def perform_create(self, serializer):
-        user = serializer.instance.username
-        refresh = RefreshToken.for_user(user)
-        res = {
-            'token': str(refresh.access_token),
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        username = serializer.validated_data["username"]
+        code = serializer.validated_data["confirmation_code"]
+        user = get_object_or_404(User.objects.all(), username=username)
+        if user.confirmation_code == code:
+            token = AccessToken.for_user(user)
+            res = {
+                "token": str(token),
+            }
+            return response.Response(res, status.HTTP_201_CREATED)
+        message = {
+            "Message": "Ошибочный confirmation_code",
         }
-        return response.Response(res, status.HTTP_201_CREATED)
-
-
-class UserViewSet(viewsets.ModelViewSet):
-    lookup_field = 'username'
-    queryset = User.objects.all()
-    serializer_class = UserSerializer
-    pagination_class = LimitOffsetPagination
-    # permission_classes = (OwnerOrReadOnly,)
-    permission_classes = (AdminPermission,)
-
-    @action(methods=['get', 'patch'], detail=False,
-            url_path='me', permission_classes=[SelfPermission, ]
-            )
-    def me(self, request):
-        print(self.request.user)
-        user = User.objects.get(self.request.user)
-        # user = self.get_object()
-        serializer = self.get_serializer(user)
-        return Response(serializer.data)
+        return response.Response(
+            data=message,
+            status=status.HTTP_400_BAD_REQUEST
+        )

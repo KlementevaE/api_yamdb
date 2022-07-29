@@ -1,6 +1,7 @@
 from django.core.management.base import BaseCommand
 
 import csv
+import re
 
 from api_yamdb.settings import BASE_DIR
 from reviews.models import (
@@ -20,79 +21,29 @@ REVIEW_FILE = STATIC_DATA + r'\review.csv'
 COMMENT_FILE = STATIC_DATA + r'\comments.csv'
 
 
+FILES = {
+    Category: CATEGORY_FILE,
+    Genre: GENRE_FILE,
+    User: USERS_FILE,
+    Title: TITLES_FILE,
+    TitleGenre: GENRE_TITLE_FILE,
+    Review: REVIEW_FILE,
+    Comment: COMMENT_FILE,
+}
+
+
+def read_from_csv(model, datafile):
+    with open(datafile, 'r', encoding="utf-8") as f:
+        reader = csv.DictReader(f)
+        for row in reader:
+            row = {re.sub(r'(category)$',
+                          'category_id', k): v for (k, v) in row.items()}
+            row = {re.sub(r'(author)$',
+                          'author_id', k): v for (k, v) in row.items()}
+            _, created = model.objects.get_or_create(**row)
+
+
 class Command(BaseCommand):
     def handle(self, *args, **kwargs):
-        with open(CATEGORY_FILE, 'r', encoding="utf-8") as f:
-            reader = csv.reader(f)
-            next(reader, None)
-            for row in reader:
-                _, created = Category.objects.get_or_create(
-                    id=row[0],
-                    name=row[1],
-                    slug=row[2],
-                )
-        with open(GENRE_FILE, 'r', encoding="utf-8") as f:
-            reader = csv.reader(f)
-            next(reader, None)
-            for row in reader:
-                _, created = Genre.objects.get_or_create(
-                    id=row[0],
-                    name=row[1],
-                    slug=row[2],
-                )
-        with open(USERS_FILE, 'r', encoding="utf-8") as f:
-            reader = csv.reader(f)
-            next(reader, None)
-            for row in reader:
-                _, created = User.objects.get_or_create(
-                    id=row[0],
-                    username=row[1],
-                    email=row[2],
-                    role=row[3],
-                    bio=row[4],
-                    first_name=row[5],
-                    last_name=row[6],
-                )
-        with open(TITLES_FILE, 'r', encoding="utf-8") as f:
-            reader = csv.reader(f)
-            next(reader, None)
-            for row in reader:
-                _, created = Title.objects.get_or_create(
-                    id=row[0],
-                    name=row[1],
-                    year=row[2],
-                    category_id=row[3],
-                )
-        with open(GENRE_TITLE_FILE, 'r', encoding="utf-8") as f:
-            reader = csv.reader(f)
-            next(reader, None)
-            for row in reader:
-                _, created = TitleGenre.objects.get_or_create(
-                    id=row[0],
-                    title_id=row[1],
-                    genre_id=row[2],
-                )
-        with open(REVIEW_FILE, 'r', encoding="utf-8") as f:
-            reader = csv.reader(f)
-            next(reader, None)
-            for row in reader:
-                _, created = Review.objects.get_or_create(
-                    id=row[0],
-                    title_id=row[1],
-                    text=row[2],
-                    author_id=row[3],
-                    score=row[4],
-                    pub_date=row[5],
-                )
-
-        with open(COMMENT_FILE, 'r', encoding="utf-8") as f:
-            reader = csv.reader(f)
-            next(reader, None)
-            for row in reader:
-                _, created = Comment.objects.get_or_create(
-                    id=row[0],
-                    review_id=row[1],
-                    text=row[2],
-                    author_id=row[3],
-                    pub_date=row[4],
-                )
+        for model, datafile in FILES.items():
+            read_from_csv(model, datafile)
