@@ -46,6 +46,7 @@ def read_from_csv(model, datafile):
             _, created = model.objects.get_or_create(**row)
 
 
+
 class Command(BaseCommand):
     def handle(self, *args, **kwargs):
         for model, datafile in FILES.items():
