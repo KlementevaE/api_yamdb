@@ -25,6 +25,9 @@ class Category(models.Model):
     name = models.CharField(max_length=256)
     slug = models.SlugField(max_length=50, unique=True)
 
+    class Meta:
+        ordering = ['-pk']
+
     def __str__(self):
         return self.name
 
@@ -32,6 +35,9 @@ class Category(models.Model):
 class Genre(models.Model):
     name = models.CharField(max_length=256)
     slug = models.SlugField(max_length=50, unique=True)
+
+    class Meta:
+        ordering = ['-pk']
 
     def __str__(self):
         return self.name
@@ -42,13 +48,18 @@ class Title(models.Model):
     year = models.PositiveIntegerField(
         validators=[MaxValueValidator(dt.datetime.now().year)]
     )
-    discription = models.TextField(blank=True)
+    description = models.TextField(blank=True)
     category = models.ForeignKey(
         Category,
         on_delete=models.SET_NULL,
         null=True,
         related_name='category'
     )
+    genre = models.ManyToManyField(Genre, related_name='genre',
+                                   through='TitleGenre')
+
+    class Meta:
+        ordering = ['-pk']
 
     def __str__(self):
         return self.name
@@ -57,7 +68,8 @@ class Title(models.Model):
 class TitleGenre(models.Model):
     title = models.ForeignKey(
         Title,
-        on_delete=models.CASCADE
+        on_delete=models.CASCADE,
+        related_name='titlegenres'
     )
     genre = models.ForeignKey(
         Genre,
@@ -93,6 +105,9 @@ class Review(models.Model):
     class Meta:
         ordering = ['-pub_date']
 
+    def __str__(self):
+        return self.text
+
 
 class Comment(models.Model):
     review = models.ForeignKey(
@@ -111,3 +126,6 @@ class Comment(models.Model):
 
     class Meta:
         ordering = ['-pub_date']
+
+    def __str__(self):
+        return self.text
