@@ -12,6 +12,7 @@ ROLE_CHOICES = (
 
 
 class User(AbstractUser):
+    email = models.EmailField('email address', blank=False, unique=True)
     bio = models.TextField(
         'Биография',
         blank=True,
@@ -19,11 +20,22 @@ class User(AbstractUser):
     role = models.CharField(max_length=9,
                             choices=ROLE_CHOICES,
                             default='user')
+    confirmation_code = models.CharField(
+        'Confirmation code',
+        max_length=4,
+        blank=True,
+    )
+
+    def __str__(self):
+        return self.username
 
 
 class Category(models.Model):
     name = models.CharField(max_length=256)
     slug = models.SlugField(max_length=50, unique=True)
+
+    class Meta:
+        ordering = ['-pk']
 
     def __str__(self):
         return self.name
@@ -32,6 +44,9 @@ class Category(models.Model):
 class Genre(models.Model):
     name = models.CharField(max_length=256)
     slug = models.SlugField(max_length=50, unique=True)
+
+    class Meta:
+        ordering = ['-pk']
 
     def __str__(self):
         return self.name
@@ -49,6 +64,11 @@ class Title(models.Model):
         null=True,
         related_name='category'
     )
+    genre = models.ManyToManyField(Genre, related_name='genre',
+                                   through='TitleGenre')
+
+    class Meta:
+        ordering = ['-pk']
 
     def __str__(self):
         return self.name
@@ -57,7 +77,8 @@ class Title(models.Model):
 class TitleGenre(models.Model):
     title = models.ForeignKey(
         Title,
-        on_delete=models.CASCADE
+        on_delete=models.CASCADE,
+        related_name='titlegenres'
     )
     genre = models.ForeignKey(
         Genre,
@@ -93,6 +114,9 @@ class Review(models.Model):
     class Meta:
         ordering = ['-pub_date']
 
+    def __str__(self):
+        return self.text
+
 
 class Comment(models.Model):
     review = models.ForeignKey(
@@ -111,3 +135,6 @@ class Comment(models.Model):
 
     class Meta:
         ordering = ['-pub_date']
+
+    def __str__(self):
+        return self.text
