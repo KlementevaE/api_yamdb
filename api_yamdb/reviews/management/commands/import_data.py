@@ -10,6 +10,7 @@ from reviews.models import (
     TitleGenre, Review, Comment
 )
 
+
 STATIC_DATA = BASE_DIR + r'\static\data'
 
 CATEGORY_FILE = STATIC_DATA + r'\category.csv'

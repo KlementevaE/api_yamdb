@@ -1,17 +1,21 @@
 from django.shortcuts import get_object_or_404
+from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import (response, status,
                             viewsets,
                             permissions,
                             filters)
-from rest_framework.generics import CreateAPIView
+from rest_framework import generics
 from rest_framework.decorators import action
 from rest_framework_simplejwt.tokens import AccessToken
 
 from .serializers import (UserSerializer, UserMeSerializer,
-                          AuthSignupSerializer, AuthTokenSerializer)
+                          AuthSignupSerializer, AuthTokenSerializer,
+                          CategorySerializer, GenreSerializer,
+                          TitleReadSerializer, TitleCreateUpdateSerializer)
 from .permissions import AdminPermission  # , SelfPermission
 from .pagination import UserPagination
-from reviews.models import User
+from .filters import TitleFilter
+from reviews.models import User, Category, Genre, Title
 
 
 class UserViewSet(viewsets.ModelViewSet):
@@ -43,7 +47,7 @@ class UserViewSet(viewsets.ModelViewSet):
         )
 
 
-class AuthSignupView(CreateAPIView):
+class AuthSignupView(generics.CreateAPIView):
     """Generic для самостоятельной регистрации.
     И получения кода подтверждения"""
 
@@ -62,7 +66,7 @@ class AuthSignupView(CreateAPIView):
         )
 
 
-class AuthTokenView(CreateAPIView):
+class AuthTokenView(generics.CreateAPIView):
     """Generic для получения access-токена."""
 
     permission_classes = (permissions.AllowAny,)
@@ -87,3 +91,41 @@ class AuthTokenView(CreateAPIView):
             data=message,
             status=status.HTTP_400_BAD_REQUEST
         )
+
+
+class CategoryList(generics.ListCreateAPIView):
+    queryset = Category.objects.all()
+    serializer_class = CategorySerializer
+    filter_backends = (filters.SearchFilter,)
+    search_fields = ('name',)
+
+
+class CategoryDetail(generics.DestroyAPIView):
+    queryset = Category.objects.all()
+    serializer_class = CategorySerializer
+    lookup_field = 'slug'
+
+
+class GenreList(generics.ListCreateAPIView):
+    queryset = Genre.objects.all()
+    serializer_class = GenreSerializer
+    filter_backends = (filters.SearchFilter,)
+    search_fields = ('name',)
+
+
+class GenreDetail(generics.DestroyAPIView):
+    queryset = Genre.objects.all()
+    serializer_class = GenreSerializer
+    lookup_field = 'slug'
+
+
+class TitleViewSet(viewsets.ModelViewSet):
+    queryset = Title.objects.all()
+    filter_backends = (DjangoFilterBackend,)
+    filter_class = TitleFilter
+
+    def get_serializer_class(self):
+        method = self.request.method
+        if method == 'GET':
+            return TitleReadSerializer
+        return TitleCreateUpdateSerializer
