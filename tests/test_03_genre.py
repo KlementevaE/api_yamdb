@@ -66,6 +66,7 @@ class Test03GenreAPI:
             'Проверьте, что при GET запросе `/api/v1/genres/` возвращаете данные с пагинацией. '
             'Тип параметра `results` должен быть список'
         )
+        print("LLLLL", data['results'])
         assert len(data['results']) == 2, (
             'Проверьте, что при GET запросе `/api/v1/genres/` возвращаете данные с пагинацией. '
             'Значение параметра `results` не правильное'

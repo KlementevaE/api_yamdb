@@ -1,10 +1,12 @@
+
 from rest_framework import generics
 from rest_framework import filters, viewsets
 from django_filters.rest_framework import DjangoFilterBackend
 
 from reviews.models import Category, Genre, Title
 from .serializers import (CategorySerializer, GenreSerializer,
-                          TitleCreateUpdateSerializer)
+                          TitleReadSerializer, TitleCreateUpdateSerializer)
+from .filters import TitleFilter
 
 
 class CategoryList(generics.ListCreateAPIView):
@@ -35,6 +37,11 @@ class GenreDetail(generics.DestroyAPIView):
 
 class TitleViewSet(viewsets.ModelViewSet):
     queryset = Title.objects.all()
-    serializer_class = TitleCreateUpdateSerializer
     filter_backends = (DjangoFilterBackend,)
-    filterset_fields = ('category__slug', 'name', 'year')
+    filter_class = TitleFilter
+
+    def get_serializer_class(self):
+        method = self.request.method
+        if method == 'GET':
+            return TitleReadSerializer
+        return TitleCreateUpdateSerializer
