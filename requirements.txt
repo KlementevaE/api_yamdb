@@ -5,3 +5,10 @@ PyJWT==2.1.0
 pytest==6.2.4
 pytest-django==4.4.0
 pytest-pythonpath==0.7.3
+<<<<<<< HEAD
+djangorestframework-simplejwt==5.2.0
+django-filter==22.1
+=======
+django-filter==22.1
+djangorestframework-simplejwt==5.2.0
+>>>>>>> 47f01b5494cd8283cdcf74f54e143ab95f675b8a
