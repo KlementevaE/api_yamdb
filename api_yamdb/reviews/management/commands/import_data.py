@@ -11,15 +11,15 @@ from reviews.models import (
 )
 
 
-STATIC_DATA = BASE_DIR + r'\static\data'
+STATIC_DATA = BASE_DIR + r'/static/data'
 
-CATEGORY_FILE = STATIC_DATA + r'\category.csv'
-GENRE_FILE = STATIC_DATA + r'\genre.csv'
-USERS_FILE = STATIC_DATA + r'\users.csv'
-TITLES_FILE = STATIC_DATA + r'\titles.csv'
-GENRE_TITLE_FILE = STATIC_DATA + r'\genre_title.csv'
-REVIEW_FILE = STATIC_DATA + r'\review.csv'
-COMMENT_FILE = STATIC_DATA + r'\comments.csv'
+CATEGORY_FILE = STATIC_DATA + r'/category.csv'
+GENRE_FILE = STATIC_DATA + r'/genre.csv'
+USERS_FILE = STATIC_DATA + r'/users.csv'
+TITLES_FILE = STATIC_DATA + r'/titles.csv'
+GENRE_TITLE_FILE = STATIC_DATA + r'/genre_title.csv'
+REVIEW_FILE = STATIC_DATA + r'/review.csv'
+COMMENT_FILE = STATIC_DATA + r'/comments.csv'
 
 
 FILES = {
@@ -44,7 +44,6 @@ def read_from_csv(model, datafile):
             row = {re.sub(r'(author)$',
                           'author_id', k): v for (k, v) in row.items()}
             _, created = model.objects.get_or_create(**row)
-
 
 
 class Command(BaseCommand):
