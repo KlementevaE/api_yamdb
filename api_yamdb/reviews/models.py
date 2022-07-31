@@ -1,8 +1,8 @@
-from django.contrib.auth.models import AbstractUser
-from django.core.validators import MinValueValidator, MaxValueValidator
-from django.db import models
-
 import datetime as dt
+
+from django.contrib.auth.models import AbstractUser
+from django.core.validators import MaxValueValidator, MinValueValidator
+from django.db import models
 
 ROLE_CHOICES = (
     ('user', 'user'),
@@ -112,6 +112,10 @@ class Review(models.Model):
     )
 
     class Meta:
+        constraints = [
+            models.UniqueConstraint(fields=['title', 'author'],
+                                    name='unique_connection'),
+        ]
         ordering = ['-pub_date']
 
     def __str__(self):

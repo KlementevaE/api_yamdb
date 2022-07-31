@@ -1,11 +1,13 @@
 from random import choice
+
 from django.core.mail import send_mail
 from rest_framework import serializers
-from rest_framework.validators import UniqueValidator, UniqueTogetherValidator
 from rest_framework.exceptions import ValidationError
 from rest_framework.generics import get_object_or_404
-from reviews.models import (User, ROLE_CHOICES, Category,
-                            Genre, Title, Review, Comment)
+from rest_framework.validators import UniqueTogetherValidator, UniqueValidator
+
+from reviews.models import (ROLE_CHOICES, Category, Comment, Genre, Review,
+                            Title, User)
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -94,6 +96,7 @@ class AuthTokenSerializer(serializers.ModelSerializer):
 
 class CategorySerializer(serializers.ModelSerializer):
     """Сериализатор для модели Category."""
+
     class Meta:
         fields = ('name', 'slug')
         model = Category
@@ -101,20 +104,22 @@ class CategorySerializer(serializers.ModelSerializer):
 
 class GenreSerializer(serializers.ModelSerializer):
     """Сериализатор для модели Genre."""
+
     class Meta:
         fields = ('name', 'slug')
         model = Genre
 
 
 class TitleReadSerializer(serializers.ModelSerializer):
-    """Сериализатор для модели Title."""
-    raiting = serializers.SerializerMethodField()
+    """Сериализатор для модели Title при GET-запросе."""
+
+    rating = serializers.SerializerMethodField()
     genre = GenreSerializer(read_only=True, many=True)
     category = serializers.SlugRelatedField(queryset=Category.objects.all(),
                                             slug_field='slug')
 
     class Meta:
-        fields = ('id', 'name', 'year', 'raiting', 'description', 'genre',
+        fields = ('id', 'name', 'year', 'rating', 'description', 'genre',
                   'category')
         model = Title
 
@@ -127,33 +132,33 @@ class TitleReadSerializer(serializers.ModelSerializer):
             )
         ]
 
-    def get_raiting(self, obj):
+    def get_rating(self, obj):
+        if not obj.reviews.all().exists():
+            return
         reviews = obj.reviews.all()
         sum = 0
         for review in reviews:
             sum += review.score
-        if len(reviews) != 0:
-            return int(sum / len(reviews))
-        return 0
+        return int(sum / len(reviews))
 
     def to_representation(self, instance):
         representation = super().to_representation(instance)
-        print(instance)
         representation['category'] = {'name': instance.category.name,
                                       'slug': instance.category.slug}
         return representation
 
 
 class TitleCreateUpdateSerializer(serializers.ModelSerializer):
-    """Сериализатор для модели Title."""
-    raiting = serializers.SerializerMethodField()
+    """Сериализатор для модели Title при запросах POST, PATCH, DELETE."""
+
+    rating = serializers.SerializerMethodField()
     genre = serializers.SlugRelatedField(queryset=Genre.objects.all(),
                                          slug_field='slug', many=True)
     category = serializers.SlugRelatedField(queryset=Category.objects.all(),
                                             slug_field='slug')
 
     class Meta:
-        fields = ('id', 'name', 'year', 'raiting', 'description', 'genre',
+        fields = ('id', 'name', 'year', 'rating', 'description', 'genre',
                   'category')
         model = Title
 
@@ -166,7 +171,21 @@ class TitleCreateUpdateSerializer(serializers.ModelSerializer):
             )
         ]
 
-    def get_raiting(self, obj):
+    def validate(self, data):
+        if 'genre' in self.initial_data:
+            genres = data["genre"]
+            for genre in genres:
+                if not Genre.objects.filter(pk=genre.pk).exists():
+                    raise ValidationError('Такого жанра в базе не'
+                                          'существует')
+        if 'category' in self.initial_data:
+            category = data["category"]
+            if not Category.objects.filter(pk=category.pk).exists():
+                raise ValidationError('Такой категории в базе не'
+                                      'существует')
+        return data
+
+    def get_rating(self, obj):
         reviews = obj.reviews.all()
         sum = 0
         for review in reviews:
@@ -190,10 +209,8 @@ class TitleCreateUpdateSerializer(serializers.ModelSerializer):
 
 
 class ReviewSerializer(serializers.ModelSerializer):
-    title = serializers.SlugRelatedField(
-        slug_field='name',
-        read_only=True,
-    )
+    """Сериализатор для модели Review."""
+
     author = serializers.SlugRelatedField(
         default=serializers.CurrentUserDefault(),
         slug_field='username',
@@ -213,10 +230,12 @@ class ReviewSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Review
-        fields = '__all__'
+        fields = ('id', 'text', 'author', 'score', 'pub_date')
 
 
 class CommentSerializer(serializers.ModelSerializer):
+    """Сериализатор для модели Comment."""
+
     review = serializers.SlugRelatedField(
         slug_field='text',
         read_only=True
@@ -229,4 +248,3 @@ class CommentSerializer(serializers.ModelSerializer):
     class Meta:
         model = Comment
         fields = '__all__'
-
