@@ -5,7 +5,8 @@ from rest_framework.decorators import action
 from rest_framework.generics import get_object_or_404
 from rest_framework_simplejwt.tokens import AccessToken
 
-from reviews.models import Category, Genre, Review, Title, User
+from reviews.models import Category, Genre, Review, Title
+from users.models import User
 from .filters import TitleFilter
 from .pagination import UserPagination
 from .permissions import (AdminPermission, IsAdminModeratorOwnerOrReadOnly,

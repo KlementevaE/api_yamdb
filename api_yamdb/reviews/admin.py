@@ -1,16 +1,6 @@
 from django.contrib import admin
 
-from .models import User, Category, Genre, TitleGenre, Title, Review, Comment
-
-
-class UserAdmin(admin.ModelAdmin):
-    list_display = ('pk', 'username', 'email', 'role', 'bio',
-                    'first_name', 'last_name', 'confirmation_code')
-    fields = ('username', 'email', 'role', 'bio',
-              'first_name', 'last_name', 'confirmation_code', "is_staff")
-
-
-admin.site.register(User, UserAdmin)
+from .models import Category, Genre, TitleGenre, Title, Review, Comment
 
 
 class CategoryAdmin(admin.ModelAdmin):
