@@ -22,3 +22,13 @@ class IsAdminModeratorOwnerOrReadOnly(permissions.BasePermission):
                 or request.user.role == "admin"
                 or request.user.role == "moderator"
                 or obj.author == request.user)
+
+
+class IsAdminOrReadOnlyPermission(permissions.BasePermission):
+    def has_permission(self, request, view):
+
+        if (request.method in permissions.SAFE_METHODS
+                or request.user.is_authenticated
+                and request.user.role == "admin"):
+            return True
+        return False

@@ -1,22 +1,20 @@
-from rest_framework.generics import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework import (response, status,
-                            viewsets,
-                            permissions,
-                            filters)
-from rest_framework import generics
+from rest_framework import (filters, generics, permissions, response, status,
+                            viewsets)
 from rest_framework.decorators import action
+from rest_framework.generics import get_object_or_404
 from rest_framework_simplejwt.tokens import AccessToken
 
-from .serializers import (UserSerializer, UserMeSerializer,
-                          AuthSignupSerializer, AuthTokenSerializer,
-                          CategorySerializer, GenreSerializer,
-                          TitleReadSerializer, TitleCreateUpdateSerializer,
-                          ReviewSerializer, CommentSerializer)
-from .permissions import AdminPermission, IsAdminModeratorOwnerOrReadOnly
-from .pagination import UserPagination
+from reviews.models import Category, Genre, Review, Title, User
 from .filters import TitleFilter
-from reviews.models import User, Category, Genre, Title, Review
+from .pagination import UserPagination
+from .permissions import (AdminPermission, IsAdminModeratorOwnerOrReadOnly,
+                          IsAdminOrReadOnlyPermission)
+from .serializers import (AuthSignupSerializer, AuthTokenSerializer,
+                          CategorySerializer, CommentSerializer,
+                          GenreSerializer, ReviewSerializer,
+                          TitleCreateUpdateSerializer, TitleReadSerializer,
+                          UserMeSerializer, UserSerializer)
 
 
 class UserViewSet(viewsets.ModelViewSet):
@@ -95,35 +93,51 @@ class AuthTokenView(generics.CreateAPIView):
 
 
 class CategoryList(generics.ListCreateAPIView):
+    """Generic для эндпоинта categories."""
+
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
+    permission_classes = [IsAdminOrReadOnlyPermission]
     filter_backends = (filters.SearchFilter,)
     search_fields = ('name',)
 
 
 class CategoryDetail(generics.DestroyAPIView):
+    """Generic для эндпоинта categories/<slug:slug>."""
+
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
+    permission_classes = [IsAdminOrReadOnlyPermission]
     lookup_field = 'slug'
 
 
 class GenreList(generics.ListCreateAPIView):
+    """Generic для эндпоинта genres."""
+
     queryset = Genre.objects.all()
     serializer_class = GenreSerializer
+    permission_classes = [IsAdminOrReadOnlyPermission]
     filter_backends = (filters.SearchFilter,)
     search_fields = ('name',)
 
 
 class GenreDetail(generics.DestroyAPIView):
+    """Generic для эндпоинта genres/<slug:slug>."""
+
     queryset = Genre.objects.all()
     serializer_class = GenreSerializer
+    permission_classes = [IsAdminOrReadOnlyPermission]
     lookup_field = 'slug'
 
 
 class TitleViewSet(viewsets.ModelViewSet):
+    """Viewset для эндпоинта titles."""
+
     queryset = Title.objects.all()
+    permission_classes = [IsAdminOrReadOnlyPermission]
     filter_backends = (DjangoFilterBackend,)
-    filter_class = TitleFilter
+    filterset_class = TitleFilter
+    http_method_names = ['get', 'post', 'patch', 'delete', 'head']
 
     def get_serializer_class(self):
         method = self.request.method
@@ -133,6 +147,8 @@ class TitleViewSet(viewsets.ModelViewSet):
 
 
 class ReviewViewSet(viewsets.ModelViewSet):
+    """Viewset для эндпоинта reviews."""
+
     serializer_class = ReviewSerializer
     permission_classes = [IsAdminModeratorOwnerOrReadOnly]
 
@@ -147,6 +163,8 @@ class ReviewViewSet(viewsets.ModelViewSet):
 
 
 class CommentViewSet(viewsets.ModelViewSet):
+    """Viewset для эндпоинта comments."""
+
     serializer_class = CommentSerializer
     permission_classes = [IsAdminModeratorOwnerOrReadOnly]
 
