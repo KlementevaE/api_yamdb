@@ -1,3 +1,4 @@
+from random import sample
 from random import choice
 from typing import List
 
@@ -7,14 +8,15 @@ from rest_framework.exceptions import ValidationError
 from rest_framework.generics import get_object_or_404
 from rest_framework.validators import UniqueTogetherValidator, UniqueValidator
 
-from reviews.models import (ROLE_CHOICES, Category, Comment, Genre, Review,
-                            Title, User)
+from reviews.models import (Category, Comment, Genre, Review,
+                            Title)
+from users.models import User, ROLE_CHOICES, USER
 
 
 class UserSerializer(serializers.ModelSerializer):
     """Сериализатор для модели user."""
 
-    role = serializers.ChoiceField(choices=ROLE_CHOICES, default="user")
+    role = serializers.ChoiceField(choices=ROLE_CHOICES, default=USER)
 
     class Meta:
         model = User
@@ -60,16 +62,9 @@ class AuthSignupSerializer(serializers.ModelSerializer):
                 'Имя пользователя не может ME!')
         return data
 
-    def generate_confirmation_code(self):
-        pool = "1234567890"
-        random_str = []
-        for _ in range(4):
-            random_str.append(choice(pool))
-        return "".join(random_str)
-
     def create(self, validated_data):
         user = User(**validated_data)
-        code = self.generate_confirmation_code()
+        code = (sample(range(10000), 1))[0]
         user.confirmation_code = code
         user.save()
         to_email = []
@@ -97,7 +92,6 @@ class AuthTokenSerializer(serializers.ModelSerializer):
 
 class CategorySerializer(serializers.ModelSerializer):
     """Сериализатор для модели Category."""
-
     class Meta:
         fields = ('name', 'slug')
         model = Category
@@ -105,7 +99,6 @@ class CategorySerializer(serializers.ModelSerializer):
 
 class GenreSerializer(serializers.ModelSerializer):
     """Сериализатор для модели Genre."""
-
     class Meta:
         fields = ('name', 'slug')
         model = Genre

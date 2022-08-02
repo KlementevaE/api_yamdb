@@ -1,33 +1,8 @@
 import datetime as dt
 
-from django.contrib.auth.models import AbstractUser
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
-
-ROLE_CHOICES = (
-    ('user', 'user'),
-    ('moderator', 'moderator'),
-    ('admin', 'admin'),
-)
-
-
-class User(AbstractUser):
-    email = models.EmailField('email address', blank=False, unique=True)
-    bio = models.TextField(
-        'Биография',
-        blank=True,
-    )
-    role = models.CharField(max_length=9,
-                            choices=ROLE_CHOICES,
-                            default='user')
-    confirmation_code = models.CharField(
-        'Confirmation code',
-        max_length=4,
-        blank=True,
-    )
-
-    def __str__(self):
-        return self.username
+from users.models import User
 
 
 class Category(models.Model):
