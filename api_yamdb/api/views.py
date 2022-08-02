@@ -1,6 +1,7 @@
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import (filters, generics, permissions, response, status,
                             viewsets)
+from rest_framework import mixins
 from rest_framework.decorators import action
 from rest_framework.generics import get_object_or_404
 from rest_framework_simplejwt.tokens import AccessToken
@@ -93,9 +94,17 @@ class AuthTokenView(generics.CreateAPIView):
         )
 
 
-class CategoryList(generics.ListCreateAPIView):
-    """Generic для эндпоинта categories."""
+class ListCreateDeleteViewSet(mixins.ListModelMixin,
+                              mixins.CreateModelMixin,
+                              mixins.DestroyModelMixin,
+                              viewsets.GenericViewSet):
+    pass
 
+
+class CategoryViewSet(ListCreateDeleteViewSet):
+    """Viewset для эндпоинта categories."""
+
+    lookup_field = 'slug'
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
     permission_classes = [IsAdminOrReadOnlyPermission]
@@ -103,32 +112,15 @@ class CategoryList(generics.ListCreateAPIView):
     search_fields = ('name',)
 
 
-class CategoryDetail(generics.DestroyAPIView):
-    """Generic для эндпоинта categories/<slug:slug>."""
+class GenreViewSet(ListCreateDeleteViewSet):
+    """Viewset для эндпоинта genres."""
 
-    queryset = Category.objects.all()
-    serializer_class = CategorySerializer
-    permission_classes = [IsAdminOrReadOnlyPermission]
     lookup_field = 'slug'
-
-
-class GenreList(generics.ListCreateAPIView):
-    """Generic для эндпоинта genres."""
-
     queryset = Genre.objects.all()
     serializer_class = GenreSerializer
     permission_classes = [IsAdminOrReadOnlyPermission]
     filter_backends = (filters.SearchFilter,)
     search_fields = ('name',)
-
-
-class GenreDetail(generics.DestroyAPIView):
-    """Generic для эндпоинта genres/<slug:slug>."""
-
-    queryset = Genre.objects.all()
-    serializer_class = GenreSerializer
-    permission_classes = [IsAdminOrReadOnlyPermission]
-    lookup_field = 'slug'
 
 
 class TitleViewSet(viewsets.ModelViewSet):

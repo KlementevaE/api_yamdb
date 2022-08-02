@@ -5,8 +5,8 @@ from users.models import MODERATOR, ADMIN
 class AdminPermission(permissions.BasePermission):
 
     def has_permission(self, request, view):
-        if request.user.is_authenticated:
-            return (request.user.role == ADMIN or request.user.is_staff)
+        return (request.user.is_authenticated
+                and (request.user.role == ADMIN or request.user.is_staff)
 
 
 class IsAdminModeratorOwnerOrReadOnly(permissions.BasePermission):
