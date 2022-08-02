@@ -1,4 +1,5 @@
 from random import choice
+from typing import List
 
 from django.core.mail import send_mail
 from rest_framework import serializers
@@ -110,6 +111,18 @@ class GenreSerializer(serializers.ModelSerializer):
         model = Genre
 
 
+class rating:
+    """ Класс для подсчета рейтинга. """
+
+    def calculation(self, reviews: List[Review]) -> int:
+        sum = 0
+        for review in reviews:
+            sum += review.score
+        if len(reviews) != 0:
+            return int(sum / len(reviews))
+        return
+
+
 class TitleReadSerializer(serializers.ModelSerializer):
     """Сериализатор для модели Title при GET-запросе."""
 
@@ -133,13 +146,9 @@ class TitleReadSerializer(serializers.ModelSerializer):
         ]
 
     def get_rating(self, obj):
-        if not obj.reviews.all().exists():
-            return
         reviews = obj.reviews.all()
-        sum = 0
-        for review in reviews:
-            sum += review.score
-        return int(sum / len(reviews))
+        r = rating()
+        return r.calculation(reviews)
 
     def to_representation(self, instance):
         representation = super().to_representation(instance)
@@ -187,12 +196,8 @@ class TitleCreateUpdateSerializer(serializers.ModelSerializer):
 
     def get_rating(self, obj):
         reviews = obj.reviews.all()
-        sum = 0
-        for review in reviews:
-            sum += review.score
-        if len(reviews) != 0:
-            return int(sum / len(reviews))
-        return 0
+        r = rating()
+        return r.calculation(reviews)
 
     def to_representation(self, instance):
         representation = super().to_representation(instance)
@@ -204,7 +209,6 @@ class TitleCreateUpdateSerializer(serializers.ModelSerializer):
             representation['genre'][i] = {'name': genre.name,
                                           'slug': genre.slug}
             i += 1
-        genres = representation['genre']
         return representation
 
 
